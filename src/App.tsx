@@ -15,9 +15,12 @@ import { CatalogoAdminPage } from "./pages/staff/CatalogoAdminPage";
 import { CajerosAdminPage } from "./pages/staff/CajerosAdminPage";
 import { PosPage } from "./pages/staff/PosPage";
 import { HistorialPosPage } from "./pages/staff/HistorialPosPage";
+import { OrdenesAdminPage } from "./pages/staff/OrdenesAdminPage";
 
 import { RutaProtegida } from "./components/layout/RutaProtegida";
 import { InicializadorSesion } from "./components/layout/InicializadorSesion";
+
+import { PedidoManualPage } from "./pages/staff/PedidoManualPage";
 
 export default function App() {
   return (
@@ -72,6 +75,11 @@ export default function App() {
           </Route>
 
           {/* Rutas exclusivas del ADMIN */}
+
+          <Route
+            path="/staff/ordenes/manual"
+              element={<PedidoManualPage />}
+              />
           <Route
             element={
               <RutaProtegida
@@ -87,6 +95,11 @@ export default function App() {
             <Route
               path="/staff/cajeros"
               element={<CajerosAdminPage />}
+            />
+
+            <Route
+              path="/staff/ordenes"
+              element={<OrdenesAdminPage />}
             />
           </Route>
 
