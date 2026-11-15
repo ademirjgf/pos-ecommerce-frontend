@@ -1,4 +1,5 @@
 
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -6,114 +7,179 @@ import {
   Routes,
 } from "react-router-dom";
 
-import { LoginPage } from "./pages/auth/LoginPage";
-import { RegistroPage } from "./pages/auth/RegistroPage";
-import { TiendaPage } from "./pages/shop/TiendaPage";
-
-import { StaffPage } from "./pages/staff/StaffPage";
-import { CatalogoAdminPage } from "./pages/staff/CatalogoAdminPage";
-import { CajerosAdminPage } from "./pages/staff/CajerosAdminPage";
-import { PosPage } from "./pages/staff/PosPage";
-import { HistorialPosPage } from "./pages/staff/HistorialPosPage";
-import { OrdenesAdminPage } from "./pages/staff/OrdenesAdminPage";
-import { PedidoManualPage } from "./pages/staff/PedidoManualPage";
-import { CajaAdminPage } from "./pages/staff/CajaAdminPage";
-
 import { RutaProtegida } from "./components/layout/RutaProtegida";
 import { InicializadorSesion } from "./components/layout/InicializadorSesion";
+
+// Páginas cargadas bajo demanda.
+const LoginPage = lazy(() =>
+  import("./pages/auth/LoginPage").then((modulo) => ({
+    default: modulo.LoginPage,
+  }))
+);
+
+const RegistroPage = lazy(() =>
+  import("./pages/auth/RegistroPage").then((modulo) => ({
+    default: modulo.RegistroPage,
+  }))
+);
+
+const TiendaPage = lazy(() =>
+  import("./pages/shop/TiendaPage").then((modulo) => ({
+    default: modulo.TiendaPage,
+  }))
+);
+
+const StaffPage = lazy(() =>
+  import("./pages/staff/StaffPage").then((modulo) => ({
+    default: modulo.StaffPage,
+  }))
+);
+
+const CatalogoAdminPage = lazy(() =>
+  import("./pages/staff/CatalogoAdminPage").then((modulo) => ({
+    default: modulo.CatalogoAdminPage,
+  }))
+);
+
+const CajerosAdminPage = lazy(() =>
+  import("./pages/staff/CajerosAdminPage").then((modulo) => ({
+    default: modulo.CajerosAdminPage,
+  }))
+);
+
+const PosPage = lazy(() =>
+  import("./pages/staff/PosPage").then((modulo) => ({
+    default: modulo.PosPage,
+  }))
+);
+
+const HistorialPosPage = lazy(() =>
+  import("./pages/staff/HistorialPosPage").then((modulo) => ({
+    default: modulo.HistorialPosPage,
+  }))
+);
+
+const OrdenesAdminPage = lazy(() =>
+  import("./pages/staff/OrdenesAdminPage").then((modulo) => ({
+    default: modulo.OrdenesAdminPage,
+  }))
+);
+
+const PedidoManualPage = lazy(() =>
+  import("./pages/staff/PedidoManualPage").then((modulo) => ({
+    default: modulo.PedidoManualPage,
+  }))
+);
+
+const CajaAdminPage = lazy(() =>
+  import("./pages/staff/CajaAdminPage").then((modulo) => ({
+    default: modulo.CajaAdminPage,
+  }))
+);
+
+function PantallaCarga() {
+  return (
+    <main
+      role="status"
+      className="flex min-h-screen items-center justify-center bg-slate-50"
+    >
+      <p className="text-lg font-medium text-slate-600">
+        Cargando página...
+      </p>
+    </main>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <InicializadorSesion>
-        <Routes>
-          {/* Página inicial */}
-          <Route
-            path="/"
-            element={<Navigate to="/tienda" replace />}
-          />
+        <Suspense fallback={<PantallaCarga />}>
+          <Routes>
+            <Route
+              path="/"
+              element={<Navigate to="/tienda" replace />}
+            />
 
-          {/* Autenticación */}
-          <Route
-            path="/login"
-            element={<LoginPage />}
-          />
+            <Route
+              path="/login"
+              element={<LoginPage />}
+            />
 
-          <Route
-            path="/registro"
-            element={<RegistroPage />}
-          />
+            <Route
+              path="/registro"
+              element={<RegistroPage />}
+            />
 
-          {/* Tienda pública */}
-          <Route
-            path="/tienda"
-            element={<TiendaPage />}
-          />
+            <Route
+              path="/tienda"
+              element={<TiendaPage />}
+            />
 
-          {/* Rutas para ADMIN y CASHIER */}
-          <Route
-            element={
-              <RutaProtegida
-                rolesPermitidos={["ADMIN", "CASHIER"]}
+            {/* ADMIN y CASHIER */}
+            <Route
+              element={
+                <RutaProtegida
+                  rolesPermitidos={["ADMIN", "CASHIER"]}
+                />
+              }
+            >
+              <Route
+                path="/staff"
+                element={<StaffPage />}
               />
-            }
-          >
-            <Route
-              path="/staff"
-              element={<StaffPage />}
-            />
 
-            <Route
-              path="/staff/pos"
-              element={<PosPage />}
-            />
-
-            <Route
-              path="/staff/pos/historial"
-              element={<HistorialPosPage />}
-            />
-          </Route>
-
-          {/* Rutas exclusivas del ADMIN */}
-          <Route
-            element={
-              <RutaProtegida
-                rolesPermitidos={["ADMIN"]}
+              <Route
+                path="/staff/pos"
+                element={<PosPage />}
               />
-            }
-          >
+
+              <Route
+                path="/staff/pos/historial"
+                element={<HistorialPosPage />}
+              />
+            </Route>
+
+            {/* Exclusivo de ADMIN */}
             <Route
-              path="/staff/catalogo"
-              element={<CatalogoAdminPage />}
-            />
+              element={
+                <RutaProtegida
+                  rolesPermitidos={["ADMIN"]}
+                />
+              }
+            >
+              <Route
+                path="/staff/catalogo"
+                element={<CatalogoAdminPage />}
+              />
+
+              <Route
+                path="/staff/cajeros"
+                element={<CajerosAdminPage />}
+              />
+
+              <Route
+                path="/staff/ordenes"
+                element={<OrdenesAdminPage />}
+              />
+
+              <Route
+                path="/staff/ordenes/manual"
+                element={<PedidoManualPage />}
+              />
+
+              <Route
+                path="/staff/caja"
+                element={<CajaAdminPage />}
+              />
+            </Route>
 
             <Route
-              path="/staff/cajeros"
-              element={<CajerosAdminPage />}
+              path="*"
+              element={<Navigate to="/tienda" replace />}
             />
-
-            <Route
-              path="/staff/ordenes"
-              element={<OrdenesAdminPage />}
-            />
-
-            <Route
-              path="/staff/ordenes/manual"
-              element={<PedidoManualPage />}
-            />
-
-            <Route
-              path="/staff/caja"
-              element={<CajaAdminPage />}
-            />
-          </Route>
-
-          {/* Ruta no encontrada */}
-          <Route
-            path="*"
-            element={<Navigate to="/tienda" replace />}
-          />
-        </Routes>
+          </Routes>
+        </Suspense>
       </InicializadorSesion>
     </BrowserRouter>
   );
