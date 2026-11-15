@@ -32,19 +32,34 @@ export function StaffPage() {
         <section className="grid gap-5 md:grid-cols-2">
           {esAdmin && (
             <>
+              <Link
+                to="/staff/caja"
+                className="rounded-xl border border-blue-200 bg-blue-50 p-6 shadow-sm transition hover:shadow-md"
+              >
+                <h2 className="text-xl font-bold text-blue-900">
+                  Caja y conciliación
+                </h2>
 
-            <Link
-              to="/staff/ordenes/manual"
-              className="rounded-xl bg-white p-6 shadow-sm transition hover:shadow-md"
-            >
-              <h2 className="text-xl font-bold">
-            Registrar pedido manual
-              </h2>
-
-               <p className="mt-2 text-slate-500">
-            Registrar ventas pagadas por Marketplace o redes sociales.
-              </p>
+                <p className="mt-2 text-blue-800">
+                  Abrir y cerrar caja, registrar el efectivo
+                  físico y revisar diferencias de arqueo.
+                </p>
               </Link>
+
+              <Link
+                to="/staff/ordenes/manual"
+                className="rounded-xl bg-white p-6 shadow-sm transition hover:shadow-md"
+              >
+                <h2 className="text-xl font-bold">
+                  Registrar pedido manual
+                </h2>
+
+                <p className="mt-2 text-slate-500">
+                  Registrar ventas pagadas por Marketplace
+                  o redes sociales.
+                </p>
+              </Link>
+
               <Link
                 to="/staff/catalogo"
                 className="rounded-xl bg-white p-6 shadow-sm transition hover:shadow-md"
