@@ -1,17 +1,21 @@
 
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { obtenerHistorialPOS } from "../../api/pos";
-import type { VentaPOS } from "../../types/pos";
+
+import { useHistorialPOS } from "../../hooks/useHistorialPOS";
 
 function fechaPeru() {
-  return new Intl.DateTimeFormat("en-CA", {
+  const partes = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Lima",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).formatToParts(new Date());
+
+  const obtener = (tipo: string) =>
+    partes.find((parte) => parte.type === tipo)?.value ?? "";
+
+  return `${obtener("year")}-${obtener("month")}-${obtener("day")}`;
 }
 
 function dinero(valor: number | string) {
@@ -34,57 +38,41 @@ function nombreMetodo(metodo: string | null) {
   }
 }
 
+const formatoHora = new Intl.DateTimeFormat("es-PE", {
+  timeZone: "America/Lima",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 export function HistorialPosPage() {
   const [fecha, setFecha] = useState(fechaPeru);
-  const [ventas, setVentas] = useState<VentaPOS[]>([]);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    let activo = true;
+  const { ventas, cargando, error } = useHistorialPOS(fecha);
 
-    async function cargarHistorial() {
-      setCargando(true);
-      setError("");
-      setVentas([]);
+  const totalDia = useMemo(
+    () =>
+      ventas.reduce(
+        (total, venta) => total + Number(venta.total),
+        0
+      ),
+    [ventas]
+  );
 
-      try {
-        const resultado = await obtenerHistorialPOS(fecha);
-
-        if (activo) {
-          setVentas(resultado);
-        }
-      } catch (err) {
-        if (!activo) return;
-
-        if (axios.isAxiosError(err)) {
-          const mensaje = err.response?.data?.message;
-
-          setError(
-            typeof mensaje === "string"
-              ? mensaje
-              : "No se pudo consultar el historial."
-          );
-        } else {
-          setError("No se pudo consultar el historial.");
-        }
-      } finally {
-        if (activo) setCargando(false);
-      }
-    }
-
-    if (fecha) {
-      void cargarHistorial();
-    }
-
-    return () => {
-      activo = false;
-    };
-  }, [fecha]);
-
-  const totalDia = ventas.reduce(
-    (total, venta) => total + Number(venta.total),
-    0
+  const filas = useMemo(
+    () =>
+      ventas.map((venta) => ({
+        id: venta.id,
+        hora: venta.paidAt
+          ? formatoHora.format(new Date(venta.paidAt))
+          : "-",
+        productos: venta.items.map((item) => ({
+          id: item.id,
+          texto: `Producto #${item.productId} × ${item.quantity}`,
+        })),
+        metodo: nombreMetodo(venta.paymentMethod),
+        total: dinero(venta.total),
+      })),
+    [ventas]
   );
 
   return (
@@ -118,9 +106,7 @@ export function HistorialPosPage() {
           id="fecha-historial"
           type="date"
           value={fecha}
-          onChange={(evento) =>
-            setFecha(evento.target.value)
-          }
+          onChange={(evento) => setFecha(evento.target.value)}
           className="rounded-lg border p-3"
         />
       </section>
@@ -143,6 +129,7 @@ export function HistorialPosPage() {
               <p className="text-gray-500">
                 Ventas cobradas
               </p>
+
               <p className="text-3xl font-bold">
                 {ventas.length}
               </p>
@@ -152,13 +139,14 @@ export function HistorialPosPage() {
               <p className="text-gray-500">
                 Total cobrado
               </p>
+
               <p className="text-3xl font-bold">
                 {dinero(totalDia)}
               </p>
             </div>
           </section>
 
-          {ventas.length === 0 ? (
+          {filas.length === 0 ? (
             <p className="rounded-xl border bg-white p-6 text-gray-500">
               No hay ventas cobradas en esta fecha.
             </p>
@@ -176,46 +164,33 @@ export function HistorialPosPage() {
                 </thead>
 
                 <tbody>
-                  {ventas.map((venta) => (
+                  {filas.map((fila) => (
                     <tr
-                      key={venta.id}
+                      key={fila.id}
                       className="border-t align-top"
                     >
                       <td className="p-4 font-semibold">
-                        #{venta.id}
+                        #{fila.id}
                       </td>
 
                       <td className="p-4">
-                        {venta.paidAt
-                          ? new Intl.DateTimeFormat(
-                              "es-PE",
-                              {
-                                timeZone: "America/Lima",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            ).format(
-                              new Date(venta.paidAt)
-                            )
-                          : "-"}
+                        {fila.hora}
                       </td>
 
                       <td className="p-4">
-                        {venta.items.map((item) => (
-                          <p key={item.id}>
-                            Producto #{item.productId}
-                            {" × "}
-                            {item.quantity}
+                        {fila.productos.map((producto) => (
+                          <p key={producto.id}>
+                            {producto.texto}
                           </p>
                         ))}
                       </td>
 
                       <td className="p-4">
-                        {nombreMetodo(venta.paymentMethod)}
+                        {fila.metodo}
                       </td>
 
                       <td className="p-4 font-bold">
-                        {dinero(venta.total)}
+                        {fila.total}
                       </td>
                     </tr>
                   ))}
